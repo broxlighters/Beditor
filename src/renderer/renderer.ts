@@ -26,10 +26,12 @@
  * ```
  */
 import './index.css';
-import fs from  'fs';
+import fs from 'fs';
 import os from "os";
+import {ipcRenderer} from "electron";
 
 const systemType = os.type();
+let file = "";
 const textContainer:HTMLTextAreaElement = document.querySelector(".textContainer");
 const textTitle = document.querySelector(".textTitle");
 
@@ -41,7 +43,8 @@ textContainer.addEventListener('drop',(ev:DragEvent) => {
         fs.readFile(`${fileList[0].path}`,(err,data) => {
             if (err) {
                 console.log(err);
-            }else {
+            } else {
+                file = fileList[0].path;
                 textTitle.innerHTML = fileList[0].name;
                 textContainer.innerHTML = "";
                 textContainer.innerHTML = `${data}`;
@@ -57,8 +60,11 @@ textContainer.addEventListener('dragover', (ev)=>{
 })
 
 document.addEventListener('keydown', (ev:KeyboardEvent) => {
-    if (systemType === "Darwin" && ev.metaKey === true && ev.code === "KeyS") alert('saved');
-    if (systemType === "Linux" || systemType === "Window_NT" && ev.ctrlKey === true && ev.code === "KeyS") alert('saved');
+    if ((systemType === "Darwin" && ev.metaKey === true && ev.code === "KeyS") || (systemType === ("Linux" || "Window_NT") && ev.ctrlKey === true && ev.code === "KeyS")) {
+        fs.writeFile(file, textContainer.value, function (err) {
+            if (err) return console.error(err);
+        })
+    }
 })
 
 // console.log('👋 This message is being logged by "renderer.js", included via webpack');
