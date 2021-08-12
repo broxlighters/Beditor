@@ -1,0 +1,22 @@
+body {
+
+}
+.container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: auto;
+  max-width: 48rem;
+  /*padding: 2rem;*/
+}
+
+.textTitle {
+  /*margin: auto;*/
+}
+
+.textContainer {
+  height: 50rem;
+  width: 100%;
+}
+
+.saveBtn {
+  width: 60px;
+}
