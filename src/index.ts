@@ -12,6 +12,22 @@ menu.append(new MenuItem({label:'复制', role:'copy'}))
 menu.append(new MenuItem({label:'剪切', role:'cut'}))
 menu.append(new MenuItem({label:'粘贴', role:'paste'}))
 
+ipcMain.on('save-request',(event, args) => {
+
+  dialog.showMessageBox(mainWindow,{
+    message:'是否保存？',
+    type: "none",
+    buttons: ['取消', '保存', '不保存'],
+    title: "打开新文件"
+  }).then((index)=>{
+    if (index.response == 1){
+      event.reply('save-respond',true);
+    }else if (index.response == 2) {
+      event.reply('save-respond',false);
+    }
+  })
+
+})
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -37,20 +53,49 @@ const createWindow = (): void => {
   mainWindow.webContents.openDevTools();
 
 
-
-// 退出提示
+  /**
+   * 退出提示
+   * @event close
+   */
   mainWindow.on('close',(e) => {
     e.preventDefault();
-    dialog.showMessageBox(mainWindow,{
-      message:'是否退出？',
-      type: "none",
-      buttons: ['退出','取消'],
-      title: "退出"
-    }).then((index)=>{
-      if (index.response == 0){
-        app.exit();
+    mainWindow.webContents.send('save-option-request');
+    ipcMain.on('save-option-respond',(event, args) => {
+      if (args) {
+        dialog.showMessageBox(mainWindow,{
+          message:'是否退出？',
+          type: "none",
+          buttons: ['取消', '保存&退出', '退出'],
+          title: "退出"
+        }).then((index)=>{
+          if (index.response == 1){
+            mainWindow.webContents.send('exit-save-request');
+            ipcMain.on('exit-save-respond',(event1, args1) => {
+              if (args1){
+                app.exit();
+              }else {
+                dialog.showErrorBox('保存失败',"该文件无法保存，请检查文件是否损坏");
+              }
+            })
+          }else if (index.response == 2){
+            app.exit();
+          }
+        })
+      } else {
+        dialog.showMessageBox(mainWindow,{
+          message:'是否退出？',
+          type: "none",
+          buttons: ['退出', '取消'],
+          title: "退出"
+        }).then((index)=>{
+          if (index.response == 0){
+            app.exit();
+          }
+        })
       }
-    })
+    });
+
+
   })
 };
 
